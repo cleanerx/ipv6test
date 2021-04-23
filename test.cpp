@@ -57,61 +57,14 @@ if(setsockopt(sd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr))){
 }
 
 
-// choice is 0 for sending and 1 for receiving
-int choice;
-if (argc < 2) {
-    cout << "missing argv[1]" << endl;
-    return 1;
-}
-sscanf (argv[1], "%d", &choice);
-
 // if sending
-if (choice == 0) {
-    memset(databuf, 'a', datalen);
-    databuf[sizeof databuf - 1] = '\0';
+memset(databuf, 'a', datalen);
+databuf[sizeof databuf - 1] = '\0';
 
-    if (sendto(sd, databuf, datalen, 0, (sockaddr*)&groupSock, sizeof groupSock) < 0) {
-        cout << "Error in send" << endl;
-    } else {
-        cout << "Send okay!" << endl;
-    }
-}
-
-// if receiving
-else if (choice == 1) {
-    groupSock.sin6_addr = in6addr_any;
-    if(bind(sd, (sockaddr*)&groupSock, sizeof groupSock)) {
-        perror("Binding datagram socket error");
-        close(sd);
-        return 1;
-    } else {
-        cout << "Binding datagram socket...OK." << endl;
-    }
-
-    /* Join the multicast group ff0e::/16 on the local  */
-    /* interface. Note that this IP_ADD_MEMBERSHIP option must be */
-    /* called for each local interface over which the multicast */
-    /* datagrams are to be received. */
-    struct ipv6_mreq group;
-    inet_pton (AF_INET6, "ff02::01", &group.ipv6mr_multiaddr.s6_addr);
-    group.ipv6mr_interface = ifindex;
-
-
-    if(setsockopt(sd, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&group, sizeof group) < 0) {
-        perror("Adding multicast group error");
-        close(sd);
-        return 1;
-    } else {
-        cout << "Adding multicast group...OK." << endl;
-    }
-
-    if (read(sd, databuf, datalen) < 0) {
-        perror("Error in read");
-    } else {
-        databuf[sizeof databuf - 1] = '\0';// just for safety
-        cout << "Read Okay" << endl;
-        cout << "Message is : " << databuf << endl;
-    }
+if (sendto(sd, databuf, datalen, 0, (sockaddr*)&groupSock, sizeof groupSock) < 0) {
+	cout << "Error in send" << endl;
+} else {
+	cout << "Send okay!" << endl;
 }
 
 return 0;
